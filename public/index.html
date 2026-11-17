@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee & Task Operations Portal</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background: #f4f6f9; color: #1e293b; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; }
+        header { background: #0f172a; color: #fff; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        header h1 { font-size: 1.5rem; }
+        header p { color: #94a3b8; font-size: 0.9rem; margin-top: 4px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .card { background: #fff; padding: 18px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+        .card h3 { font-size: 0.85rem; color: #64748b; text-transform: uppercase; }
+        .card p { font-size: 1.8rem; font-weight: bold; margin-top: 5px; color: #0f172a; }
+        .form-box, .table-box { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 12px; }
+        input, select, button { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; }
+        button { background: #2563eb; color: #fff; border: none; font-weight: 600; cursor: pointer; }
+        button:hover { background: #1d4ed8; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; }
+        th { background: #f8fafc; color: #475569; }
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+        .High { background: #fee2e2; color: #b91c1c; }
+        .Medium { background: #fef3c7; color: #b45309; }
+        .Low { background: #dcfce7; color: #15803d; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Enterprise Task & Operations Tracker</h1>
+        <p>Internal Workflow Management System | Node.js, Express & SQL</p>
+    </header>
+    <div class="stats">
+        <div class="card"><h3>Total Tasks</h3><p id="totalCount">3</p></div>
+        <div class="card"><h3>In Progress</h3><p id="progressCount">1</p></div>
+        <div class="card"><h3>Completed</h3><p id="completedCount">1</p></div>
+    </div>
+    <div class="form-box">
+        <h2>Assign New Operational Task</h2>
+        <form id="taskForm" class="form-grid">
+            <input type="text" id="title" placeholder="Task Title" required>
+            <select id="employee">
+                <option value="Ayush Mishra">Ayush Mishra (IT)</option>
+                <option value="Rohan Verma">Rohan Verma (Operations)</option>
+                <option value="Priya Sharma">Priya Sharma (Supply Chain)</option>
+            </select>
+            <select id="priority">
+                <option value="High">High Priority</option>
+                <option value="Medium" selected>Medium Priority</option>
+                <option value="Low">Low Priority</option>
+            </select>
+            <input type="date" id="dueDate" required>
+            <button type="submit">+ Add Task</button>
+        </form>
+    </div>
+    <div class="table-box">
+        <h2>Active Task Queue</h2>
+        <table>
+            <thead><tr><th>Task</th><th>Assigned To</th><th>Priority</th><th>Due Date</th><th>Status</th></tr></thead>
+            <tbody id="taskTable"></tbody>
+        </table>
+    </div>
+</div>
+<script>
+    let tasks = [
+        { title: 'Build REST API for Inventory Sync', emp: 'Ayush Mishra', priority: 'High', date: '2026-11-25', status: 'In Progress' },
+        { title: 'Audit North Zone Dispatch Logs', emp: 'Rohan Verma', priority: 'Medium', date: '2026-11-22', status: 'Pending' },
+        { title: 'Update Route Optimization Sheet', emp: 'Priya Sharma', priority: 'Low', date: '2026-11-18', status: 'Completed' }
+    ];
+    function renderTasks() {
+        const tbody = document.getElementById('taskTable');
+        tbody.innerHTML = tasks.map((t, i) => `
+            <tr>
+                <td><strong>${t.title}</strong></td>
+                <td>${t.emp}</td>
+                <td><span class="badge ${t.priority}">${t.priority}</span></td>
+                <td>${t.date}</td>
+                <td>
+                    <select onchange="updateStatus(${i}, this.value)">
+                        <option ${t.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                        <option ${t.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                        <option ${t.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                    </select>
+                </td>
+            </tr>
+        `).join('');
+        document.getElementById('totalCount').innerText = tasks.length;
+        document.getElementById('progressCount').innerText = tasks.filter(t => t.status === 'In Progress').length;
+        document.getElementById('completedCount').innerText = tasks.filter(t => t.status === 'Completed').length;
+    }
+    function updateStatus(index, newStatus) { tasks[index].status = newStatus; renderTasks(); }
+    document.getElementById('taskForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        tasks.unshift({
+            title: document.getElementById('title').value,
+            emp: document.getElementById('employee').value,
+            priority: document.getElementById('priority').value,
+            date: document.getElementById('dueDate').value,
+            status: 'Pending'
+        });
+        e.target.reset();
+        renderTasks();
+    });
+    renderTasks();
+</script>
+</body>
+</html>
